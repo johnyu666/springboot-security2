@@ -6,13 +6,14 @@
     <resultMap id="userMap" type="User">
         <id column="uid" property="id"></id>
         <result column="username" property="username"></result>
+        <result column="password" property="password"></result>
         <collection property="authorities" ofType="Role">
             <id column="rid" property="id"></id>
             <result column="role_name" property="authority"></result>
         </collection>
     </resultMap>
     <select id="findByUsername" resultMap="userMap">
-        select u.id uid,u.username,ur.role_id rid,r.name role_name from users  u
+        select u.id uid,u.username,u.password,ur.role_id rid,r.name role_name from users  u
         left join user_role ur on u.id = ur.user_id
         left join roles r on r.id = ur.role_id
         where username = #{username}
