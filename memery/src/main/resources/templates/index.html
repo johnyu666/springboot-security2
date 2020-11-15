@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .hidden{
+            display: none;
+        }
+        .show{
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="loginForm" class="hidden">
+        <h3>请您登录</h3>
+        <input type="text" name="username"/>
+        <input type="password" name="password"/>
+        <button>登录</button>
+    </div>
+
+
+    <table>
+        <tbody>
+
+        </tbody>
+    </table>
+
+    <script>
+        let goLoginUrl="http://localhost:3000/goLogin"
+        let doLoginUrl="http://localhost:3000/doLogin"
+        var books;
+        var globalCallback;//全局回调处理函数
+
+        //发出删除图书请求后的回调
+        function delCallback(book){
+            let index=books.findIndex(item=>item.id===book.id)
+            books.splice(index,1)
+            createTable(books)
+        }
+        //删除图书的处理：如果未登录，显示出登录表单，并污染全局回调函数的指针，否则直接使用delCallback
+        function del(book){
+            let loginForm=document.querySelector("#loginForm")
+            fetch("http://localhost:3000/deleteBook/"+book.id,{method:"DELETE"})
+            .then(resp=>resp.json())
+            .then(rs=>{
+                //这是未登录的判断，服务端的代码如下：
+                /*
+                     @ResponseBody
+                    @RequestMapping(value = "/goLogin")
+                    public CommonResult<String> goLogin(){
+                        return new CommonResult<>(401,"您还没有登录","");
+                    }
+                 */
+                if(rs.code===401){
+                    loginForm.classList.remove("hidden")
+                    loginForm.classList.add("show")
+                    globalCallback=delCallback
+                }
+                else{
+                    delCallback(rs.body)
+                }
+            })
+        }
+
+        function createTable(){
+            let tb=document.querySelector("table")
+            tb.innerHTML=''
+            books.forEach(book=>{
+                let tr=document.createElement("tr")
+                let td1=document.createElement("td")
+                let td2=document.createElement("td")
+                let td3=document.createElement("td")
+                td1.innerText=book.id
+                td2.innerText=book.name
+                let btn=document.createElement("button")
+                btn.innerText="del"
+                btn.addEventListener('click',function (){
+                    del(book)
+                })
+                td3.appendChild(btn)
+                tr.appendChild(td1)
+                tr.appendChild(td2)
+                tr.appendChild(td3)
+                tb.appendChild(tr)
+            })
+        }
+        window.onload=function (){
+            //登录表单的提交处理（如果登录成功，则使用全局的回调函数，来处理从服务器返回的数据）
+            document.querySelector("button").addEventListener('click',function (){
+
+                let username=document.querySelector("input[name='username']").value;
+                let password=document.querySelector("input[name='password']").value;
+                let cb=globalCallback
+                fetch(doLoginUrl,{method:"POST",
+                    headers:{"Content-Type":"application/x-www-form-urlencoded"},
+                    body:"username="+username+"&password="+password})
+                    .then(resp=>resp.json())
+                    .then(rs=>{
+                        if(rs.code===400){
+                            alert("用户名和密码错")
+                        }
+                        else{
+                            globalCallback(rs.body)
+                            let loginForm=document.querySelector("#loginForm")
+                            loginForm.classList.remove("show")
+                            loginForm.classList.add("hidden")
+                        }
+                    })
+            })
+
+//将全部的图书，以表格方式进行渲染
+            fetch("http://localhost:3000/books")
+            .then(resp=>resp.json())
+            .then(rs=>{
+                books=rs.body;
+                createTable()
+            })
+        }
+
+
+
+
+
+    </script>
+</body>
+</html>
