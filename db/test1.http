@@ -1,0 +1,17 @@
+POST http://localhost:3200/login
+Content-Type: application/x-www-form-urlencoded
+
+username=john&password=123
+###
+
+GET http://localhost:3200/books
+Accept: application/json
+Cookie: JSESSIONID=E710FD2FE320C677B523749D791F0B7C
+
+###
+DELETE http://localhost:3200/logout
+Content-Type: application/json
+Cookie: JSESSIONID=E710FD2FE320C677B523749D791F0B7C
+
+###
+
