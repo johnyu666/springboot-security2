@@ -11,6 +11,7 @@
     <modules>
         <module>memery</module>
         <module>db</module>
+        <module>jdbc</module>
     </modules>
     <parent>
         <artifactId>spring-boot-starter-parent</artifactId>
